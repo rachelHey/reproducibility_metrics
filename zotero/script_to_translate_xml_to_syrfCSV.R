@@ -48,5 +48,15 @@ all_methodological_papers <- all_methodological_papers %>%
 
 # Save as CSV for SYRF:
 write_for_syrf(all_methodological_papers,
-               filename="all_methodological_papers_20240513.csv")
+               filename = "all_methodological_papers_20240513.csv")
 
+
+# Extract random sample for screening test
+# all_methodological_papers <- read.csv("all_methodological_papers_20240513.csv")
+set.seed(5)
+random_rows <- sample(x = 1:nrow(all_methodological_papers),
+                      size = 20, replace = FALSE)
+screening_test_papers <- all_methodological_papers[random_rows, ]
+# write.csv(screening_test_papers, file = "screening_test_papers.csv")
+write_for_syrf(screening_test_papers,
+               filename = "screening_test_papers.csv")
