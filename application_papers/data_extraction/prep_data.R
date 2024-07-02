@@ -2,10 +2,13 @@
 # author: R. Heyard
 
 library(tidyverse)
+library(here)
 
 #### Load data ######
 #####################
-data_extract_raw <- read_csv("data_extraction/rawdata_syrf_april11.csv")
+data_extract_raw <- read_csv(here("application_papers",
+                                  "data_extraction",
+                                  "rawdata_syrf_april11.csv"))
 # Note that "rawdata_syrf_april11.csv" was not added to git but is available in
 # the project's DRIVE folder:
 # https://drive.google.com/file/d/1ErHJNxWDRn7pmsdTT6RnYwrVNZ2_CQkr/view?usp=drive_link
