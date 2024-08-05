@@ -14,8 +14,8 @@ data_extract_raw <- read_csv(here("application_papers",
 # https://drive.google.com/file/d/1ErHJNxWDRn7pmsdTT6RnYwrVNZ2_CQkr/view?usp=drive_link
 
 # Quick check
-data_extract %>% select(StudyId) %>% distinct() %>% nrow()
-data_extract %>% group_by(StudyId) %>%
+data_extract_raw %>% select(StudyId) %>% distinct() %>% nrow()
+data_extract_raw %>% group_by(StudyId) %>%
   summarise(n = n_distinct(InvestigatorName)) %>% count(n)
 
 #### Tidying data ######
