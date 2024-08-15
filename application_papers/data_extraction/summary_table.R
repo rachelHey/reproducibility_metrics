@@ -7,6 +7,7 @@ library(here)
 library(janitor)
 library(openalexR)
 library(kableExtra)
+library(ggplot2)
 
 #### Load data ######
 #####################
@@ -135,8 +136,10 @@ table_entry_numeric <- function(data, variable, name = NULL, big = ""){
     return()
 }
 
-tab <- data_extraction %>%
-  table_entry_count("domain_openA", "Field of research") %>%
+tab <- tibble(" " = "Total", n = paste0(nrow(data_extraction)), v = "") %>%
+  bind_rows(
+    data_extraction %>%
+      table_entry_count("domain_openA", "Field of research")) %>%
   bind_rows(
     data_extraction %>%
       mutate(
@@ -145,8 +148,7 @@ tab <- data_extraction %>%
                       c("TRUE", "TRUE [Comment: Emulation]") ~ "Yes",
                     TRUE ~ "No")) %>%
       table_entry_count("did_the_authors_define_the_type_of_reproducibility_that_is_investigated",
-                        "Authors defined reproducibility?")
-  ) %>%
+                        "Authors defined reproducibility?")) %>%
   bind_rows(data_extraction %>%
               # the many lab 5 would be different data and different analysis, as they
               # specificially test whether two different protocols (analyses) give different results
@@ -158,7 +160,7 @@ tab <- data_extraction %>%
                               c("Different data - different analysis",
                                 "Different data - same analysis",
                                 "Same data - different analysis",
-                                "Same data - same analysis") ~ "Combination",
+                                "Same data - same analysis") ~ "Combination*",
                             TRUE ~ even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated)) %>%
               table_entry_count("even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated",
                                 "Aspect of reproducibility")) %>%
@@ -193,10 +195,39 @@ tab <- data_extraction %>%
 tab %>%
   select(-v) %>%
   rename("N (%), unless otherwise indicated" = n) %>%
-  kable("latex") %>%
-  pack_rows(index = table(fct_inorder(tab$v)))
+  kable("latex", booktabs = TRUE,
+        caption = "FIRST VERSION OF TABLE\\label{tab:application_table}") %>%
+  kable_styling() %>%
+  pack_rows(index = table(fct_inorder(tab$v))) %>%
+  add_footnote("* Theses papers presented projects with several sub-projects looking at different aspects of reproducibility", notation="none")
 
-#
+
+# The project with both "Many Phenomena, Many studies; Many Phenomena, One Study":
+data_extraction %>%
+  filter(type_of_project == "Many Phenomena, Many studies; Many Phenomena, One Study")
+
+# Plot with number of metrics used
+data_extraction %>%
+  mutate(number_of_measures = round(number_of_measures, 0)) %>%
+  count(number_of_measures) %>%
+  ggplot(aes(x = number_of_measures, y = n)) +
+  geom_col(color = "white",fill = "#B2C7E5") +
+  xlim(c(1, 12)) +
+  # ylim(c(0, .4)) +
+  labs(x = "Number of metrics used", y = "Count") +
+  theme_bw() +
+  scale_x_continuous(breaks = 1:12, labels = 1:12) +
+  theme(legend.position = "right",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(size = .2))
+
+# Effort with 12 metrics
+data_extraction %>%
+  filter(number_of_measures == 12)
+
 # data_extraction %>%
 #   count(type_of_project, agreement_in_statistical_significance)
 #
