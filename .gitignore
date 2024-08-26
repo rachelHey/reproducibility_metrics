@@ -300,3 +300,13 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 .Rproj.user
+
+# EXTRA DOCS or folders
+CSVs_for_SyRF/*
+XMLs/*
+plots_for_paper/*
+rawdata_syrf_april11.csv
+
+*.pdf
+*.html
+

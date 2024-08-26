@@ -188,15 +188,15 @@ library(XML)
 source("zotero/functions.R")
 
 # GET DATA FOR APPLICATION PAPERS READY FOR SYRF:
-data <- read_xml(here("methodological_papers/FinalMethods4Screening.xml"))
+data <- read_xml(here("XMLs/FinalMethods4Screening.xml"))
 
 # those without doi, are all part of the ones that were already screened
 data %>%
   filter(is.na(doi) | (doi %in% methods_papers_included$doi)) %>%
-  write_for_syrf(filename=here("methodological_papers",
-                               "FinalMethods4Screening_alreadyscreened.csv"))
+  write_for_syrf(filename = here("CSVs_for_SyRF",
+                                 "FinalMethods4Screening_alreadyscreened.csv"))
 
 data %>%
   filter(!is.na(doi) & (!doi %in% methods_papers_included$doi)) %>%
-  write_for_syrf(filename=here("methodological_papers",
-                               "FinalMethods4Screening_norscreenedyet.csv"))
+  write_for_syrf(filename = here("CSVs_for_SyRF",
+                                 "FinalMethods4Screening_norscreenedyet.csv"))

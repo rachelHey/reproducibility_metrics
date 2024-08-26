@@ -8,6 +8,7 @@ library(janitor)
 library(openalexR)
 library(kableExtra)
 library(ggplot2)
+library(scales) # for label_wrap()
 
 #### Load data ######
 #####################
@@ -136,7 +137,7 @@ table_entry_numeric <- function(data, variable, name = NULL, big = ""){
     return()
 }
 
-tab <- tibble(" " = "Total", n = paste0(nrow(data_extraction)), v = "") %>%
+tab <- tibble(" " = "Total records", n = paste0(nrow(data_extraction)), v = "") %>%
   bind_rows(
     data_extraction %>%
       table_entry_count("domain_openA", "Field of research")) %>%
@@ -190,13 +191,13 @@ tab <- tibble(" " = "Total", n = paste0(nrow(data_extraction)), v = "") %>%
                                 "Subjective assessment")) %>%
   bind_rows(data_extraction %>%
               table_entry_count("none_of_the_above",
-                                "None of the predefined measures"))
+                                "Used none of the predefined measures"))
 
 tab %>%
   select(-v) %>%
   rename("N (%), unless otherwise indicated" = n) %>%
   kable("latex", booktabs = TRUE,
-        caption = "FIRST VERSION OF TABLE\\label{tab:application_table}") %>%
+        caption = "Summary of application paper data extraction.\\label{tab:application_table}") %>%
   kable_styling() %>%
   pack_rows(index = table(fct_inorder(tab$v))) %>%
   add_footnote("* Theses papers presented projects with several sub-projects looking at different aspects of reproducibility", notation="none")
@@ -206,12 +207,18 @@ tab %>%
 data_extraction %>%
   filter(type_of_project == "Many Phenomena, Many studies; Many Phenomena, One Study")
 
+# Opening the graphical device
+pdf(here("plots_for_paper", "count_metrics.pdf"),
+    width = 8, # The width of the plot in inches
+    height = 5)
+
 # Plot with number of metrics used
 data_extraction %>%
   mutate(number_of_measures = round(number_of_measures, 0)) %>%
   count(number_of_measures) %>%
   ggplot(aes(x = number_of_measures, y = n)) +
   geom_col(color = "white",fill = "#B2C7E5") +
+  geom_text(aes(label = paste0("n = ", n), vjust = -0.25)) +
   xlim(c(1, 12)) +
   # ylim(c(0, .4)) +
   labs(x = "Number of metrics used", y = "Count") +
@@ -224,36 +231,147 @@ data_extraction %>%
         panel.grid.major.x = element_blank(),
         panel.border = element_rect(size = .2))
 
+# Closing the graphical device
+dev.off()
+
 # Effort with 12 metrics
 data_extraction %>%
-  filter(number_of_measures == 12)
+  filter(number_of_measures == 12) %>%
+  pull(doi)
 
-# data_extraction %>%
-#   count(type_of_project, agreement_in_statistical_significance)
-#
-# data_extraction %>%
-#   count(type_of_project, meta_analysis)
-#
-# data_extraction %>%
-#   count(type_of_project, agreement_in_effect_size)
-#
-# data_extraction %>%
-#   count(type_of_project, subjective_assessment)
-#
-# data_extraction %>%
-#   count(type_of_project, none_of_the_above)
+# p-original stuff
+data_extraction %>%
+  filter(grepl("p-orig", did_the_authors_measure_reproducibility) |
+           grepl("pori", did_the_authors_measure_reproducibility) |
+           grepl("p_or", did_the_authors_measure_reproducibility) |
+           grepl("p-orig", paste_description_of_each_of_the_measures_used) |
+           grepl("pori", paste_description_of_each_of_the_measures_used) |
+           grepl("p_or", paste_description_of_each_of_the_measures_used))
 
-# data_extraction %>%
-#   filter(!is.na(paste_description_of_each_of_the_measures_used)) %>%
-#   group_by(type_of_project) %>%
-#   count(paste_description_of_each_of_the_measures_used)
+# Significance:
+data_extraction %>%
+  filter(agreement_in_statistical_significance) %>%
+  pull(did_the_authors_measure_reproducibility)
+
+# Effect size:
+data_extraction %>%
+  filter(agreement_in_effect_size) %>%
+  pull(did_the_authors_measure_reproducibility)
+
+# Meta-analysis:
+data_extraction %>%
+  filter(meta_analysis) %>%
+  pull(did_the_authors_measure_reproducibility)
+
+# Subjective assessment:
+data_extraction %>%
+  filter(subjective_assessment) %>%
+  pull(did_the_authors_measure_reproducibility)
+
+# To describe extra/special measures
+data_extraction %>%
+  filter(!is.na(paste_description_of_each_of_the_measures_used)) %>%
+  pull(paste_description_of_each_of_the_measures_used)
+
+# To describe limitations and assumptions
+data_extraction %>%
+  filter(!is.na(paste_text_on_limitation_assumptions)) %>%
+  pull(paste_text_on_limitation_assumptions)
+
+data_extraction %>%
+  summarise(sum(!is.na(paste_text_on_limitation_assumptions))/n())
 
 
-# data_extraction %>%
-#   filter(did_the_paper_refer_to_other_papers_for_more_information_on_the_metric_s_used) %>%
-#   pull(paste_the_doi_of_all_paper_s)
-# +/- 14 additional papers
+# Plot with type of project/reproducibility and type of agreement
+long_data <- data_extraction %>%
+  mutate(
+    even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated =
+      case_when(doi == "10.1177/2515245920958687" ~
+                  "Different data - different analysis",
+                TRUE ~ even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated)) %>%
+  pivot_longer(agreement_in_statistical_significance:none_of_the_above,
+               names_to = "type_of_agreement") %>%
+  filter(value) %>%
+  select(title, doi, type_of_project,
+         even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated,
+         type_of_agreement) %>%
+  mutate(type_of_agreement = factor(
+    case_when(type_of_agreement == "agreement_in_effect_size" ~
+                "Agreement in effect size",
+              type_of_agreement == "agreement_in_statistical_significance" ~
+                "Agreement in statistical significance",
+              type_of_agreement == "meta_analysis" ~
+                "Meta-analysis methodology",
+              type_of_agreement == "none_of_the_above" ~ "Other",
+              type_of_agreement == "subjective_assessment" ~
+                "Subjective assessment"),
+    levels = c("Agreement in effect size",
+               "Agreement in statistical significance",
+               "Meta-analysis methodology",
+               "Subjective assessment", "Other"))) %>%
+  rename(type_of_repro =
+           even_if_defined_by_the_authors_infer_the_aspect_of_reproducibility_investigated)
 
+# !!Note that combinations were split!!
+# Opening the graphical device
+pdf(here("plots_for_paper", "type_metric_repro.pdf"),
+    width = 8, # The width of the plot in inches
+    height = 5)
+long_data %>%
+  count(type_of_repro,
+        type_of_agreement) %>%
+  separate_longer_delim(type_of_repro, delim = ";") %>%
+  mutate(type_of_repro = str_trim(type_of_repro)) %>%
+  group_by(type_of_repro, type_of_agreement) %>%
+  summarise(n = sum(n)) %>%
+  ungroup() %>%
+  ggplot(aes(x = type_of_agreement, y = type_of_repro)) +
+  geom_point(aes(size = n, color = type_of_repro)) +
+  scale_size_continuous(range = c(2, 15), breaks = c(1, 5, 10, 15, 20, 25),
+                        "Count") +
+  scale_color_manual(values = c("#97CFBA", "#dcedc1",
+                                "#ffd3b6", "#ff8b94"), guide = "none") +
+  labs(x = "Type of Metric", y = "Type of reproducibility") +
+  scale_x_discrete(labels = label_wrap(15)) +
+  scale_y_discrete(labels = label_wrap(20)) +
+  theme_bw() +
+  theme(legend.position = "right",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(size = .2))
 
+# Closing the graphical device
+dev.off()
 
+pdf(here("plots_for_paper", "type_metric_project.pdf"),
+    width = 8, # The width of the plot in inches
+    height = 5)
+long_data %>%
+  count(type_of_project,
+        type_of_agreement) %>%
+  separate_longer_delim(type_of_project, delim = ";") %>%
+  mutate(type_of_project = str_trim(type_of_project)) %>%
+  group_by(type_of_project, type_of_agreement) %>%
+  summarise(n = sum(n)) %>%
+  ungroup() %>%
+  ggplot(aes(x = type_of_agreement, y = type_of_project)) +
+  geom_point(aes(size = n, color = type_of_project)) +
+  scale_size_continuous(range = c(2, 10), breaks = c(1, 5, 10, 15),
+                        "Count") +
+  scale_color_manual(values = c("#97CFBA", "#dcedc1",
+                                "#ffd3b6", "#ff8b94"), guide = "none") +
+  labs(x = "Type of Metric", y = "Type of project") +
+  scale_x_discrete(labels = label_wrap(15)) +
+  scale_y_discrete(labels = label_wrap(18)) +
+  theme_bw() +
+  theme(legend.position = "right",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(size = .2))
 
+# Closing the graphical device
+dev.off()

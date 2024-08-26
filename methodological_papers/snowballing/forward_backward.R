@@ -25,7 +25,12 @@ screening_clean <- screening_clean %>%
   ungroup() %>%
   mutate(keep =
            case_when(n > 1 ~ FALSE,
-                     TRUE ~ keep)) %>%
+                     TRUE ~ keep))
+# for the flow-chart:
+screening_clean %>%
+  count(keep, screening_status)
+
+screening_clean <- screening_clean %>%
   filter(keep)
 
 ### Interesting applications ###
@@ -42,13 +47,11 @@ dois_interesting_applications <- screening_clean %>%
 # DOIs uploaded to Zotero
 # https://www.zotero.org/groups/5397531/reproducibilitymetrics/collections/I3TF9PB2/items/W5Z7AWTU/collection
 # Downloaded again into XML, load into R ....
-interesting_applications <- read_xml(here("methodological_papers",
-                                          "snowballing",
+interesting_applications <- read_xml(here("XMLs",
                                           "Interesting_application_papers.xml"))
 # .... and write into SyRF CSV:
 write_for_syrf(interesting_applications,
-               filename = here("methodological_papers",
-                               "snowballing",
+               filename = here("XMLs",
                                "Interesting_application_papers.csv"))
 
 
@@ -63,12 +66,16 @@ dois_methods <- screening_clean %>%
 snowball_doi_methods_papers <- oa_snowball(
   doi = dois_methods,
   # citing_params = list(from_publication_date = "2022-01-01"),
+  citing_params = list(to_publication_date = "2024-07-11"),
   # cited_by_params = list(),
   verbose = TRUE
 )
 # Change into DF
 snowball_methods <-
   snowball2df(snowball_doi_methods_papers)
+
+# nrow(snowball_methods)
+# [1] 4388
 
 # Find, using keywords, papers that (in their title) discuss a measure,
 # metric or rating
@@ -94,9 +101,8 @@ relevant_snowball_methods %>%
 # To paste into advanced search in Scopus, to get snowball_methods_08072024.csv
 # Extract RIS - import into Zotero and export XML
 # Downloaded again into XML, load into R ....
-snowball_methods <- read_xml(here("methodological_papers",
-                                          "snowballing",
-                                          "snowball_methods_11072024.xml"))
+snowball_methods <- read_xml(here("XMLs",
+                                  "snowball_methods_11072024.xml"))
 # .... and write into SyRF CSV:
 write_for_syrf(snowball_methods,
                filename = here("methodological_papers",
@@ -121,8 +127,7 @@ add_relevant_snowball_methods %>%
 # To paste into advanced search in Scopus, to get snowball_methods_08072024.csv
 # Extract RIS - import into Zotero and export XML
 # Downloaded again into XML, load into R ....
-add_snowball_methods <- read_xml(here("methodological_papers",
-                                      "snowballing",
+add_snowball_methods <- read_xml(here("XMLs",
                                       "snowball_methods_more_11072024.xml"))
 
 write_for_syrf(add_snowball_methods,
