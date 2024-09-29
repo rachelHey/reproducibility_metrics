@@ -1,0 +1,313 @@
+---
+title: "Reproducibility Metrics"
+output: 
+  html_document:
+    mathjax: "default"
+    theme: flatly
+    df_print: paged
+    csl: "apa.csl"
+bibliography: references.bib
+citation_package: pandoc
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(openalexR)
+library(kableExtra)
+library(ggplot2)
+library(scales)
+library(xfun)
+library(tablet)
+library(DT)
+library(RefManageR)
+library(htmltools)  # Required for using tags$style
+
+
+reprometrics <-
+  readxl::read_xlsx(here("methodological_papers",
+                         "data_extraction",
+                         "ReproducibilityMetrics.xlsx"))
+
+options(knitr.kable.NA = '')
+
+```
+
+
+```{r, echo = FALSE}
+tab_description <- reprometrics %>%
+  mutate(Name = paste0(Name, ifelse(!is.na(`also called or related to`),
+                                    paste0(" (", `also called or related to`, ")"),
+                                    ""))) %>%
+  select(Name, Description, `Question answered`,
+         `Type of Reproducibility investigated`, `Scenario of application`,
+         `Purpose of Metric`, Limitations, Assumptions, `Data Input`,
+         `Implementation of Metric`, `First mention in`, `Discussed in`, `Used in`) %>%
+  mutate(#"Further reading" = paste0(ifelse(!is.na(`First mention in`),
+  #                                          paste0("First mentioned in ",
+  #                                                 `First mention in`, ". "), ""),
+  #                                   ifelse(!is.na(`Discussed in`),
+  #                                          paste0("Discussed in ",
+  #                                                 `Discussed in`, ". "), ""),
+  #                                   ifelse(!is.na(`Used in`),
+  #                                          paste0("Used in ",
+  #                                                 `Used in`, "."), "")),
+         # "Further reading" = str_trim(`Further reading`),
+         "Type of Reproducibility investigated" =
+           case_when(
+             `Type of Reproducibility investigated` ==
+               "Different data - same analysis; Different data - different analysis" ~
+               "Different data - same/different analysis",
+             `Type of Reproducibility investigated` ==
+               "Same data - same analysis; Different data - same analysis" ~
+               "Same/different data - same analysis",
+             `Type of Reproducibility investigated` ==
+               "Same data - same analysis; Same data - different analysis" ~
+               "Same data - same/different analysis",
+             `Type of Reproducibility investigated` %in%
+               c("Same data - same analysis; Different data - same analysis; Same data - different analysis; Different data - different analysis",
+                 "Same data - same analysis; Same data - different analysis; Different data - same analysis; Different data - different analysis") ~
+               "Same/different data - same/different analysis",
+             TRUE ~ `Type of Reproducibility investigated`),
+         # "Type of Reproducibility investigated" =
+         #   factor(`Type of Reproducibility investigated`),
+         "Type of Reproducibility investigated" =
+           factor(`Type of Reproducibility investigated`,
+                  levels = c("Same data - same analysis",
+                             "Same data - different analysis",
+                             "Different data - same analysis",
+                             "Different data - different analysis",
+                             "Same data - same/different analysis",
+                             "Different data - same/different analysis",
+                             "Same/different data - same analysis",
+                             "Same/different data - same/different analysis")),
+         "Purpose of Metric" =
+           case_when(
+               grepl("quantify", `Purpose of Metric`) &
+                 grepl("classify", `Purpose of Metric`) ~ "To quantify and classify",
+               grepl("predict", `Purpose of Metric`) ~ "To quantify and predict",
+               grepl("analyse", `Purpose of Metric`) |
+                 grepl("describe", `Purpose of Metric`) |
+                 grepl("explain", `Purpose of Metric`) ~ "To quantify and expain",
+               grepl("quantify", `Purpose of Metric`) ~ "To quantify",
+               grepl("classify", `Purpose of Metric`) ~ "To classify",
+               TRUE ~ `Purpose of Metric`)) %>%
+  arrange(`Type of Reproducibility investigated`, Name) %>% 
+  # Replace single $ with inline math format \( ... \)
+  mutate(Description = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+                            "\\\\(\\1\\\\)", Description, perl = TRUE)) %>%
+  # Leave double $$ as is
+  mutate(Description = gsub("\\${2}", "\\$\\$", Description),
+         # Use gsub to remove the backslash only in front of the percentage sign
+         Name = gsub("\\\\%", "%", Name),
+         # Use gsub to remove the backslash only in front of the percentage sign
+         Description = gsub("\\\\%", "%", Description),
+         `First mention in` =
+         str_replace_all(`First mention in`, 
+                                  "\\\\cite\\{([^}]+)\\}", # Match \cite{...}
+                                  function(x) {
+                                      # Extract the citation keys and split them by commas
+                                      citations <- str_match(x, "\\\\cite\\{([^}]+)\\}")[,2]
+                                      # Replace commas with semicolons and add @ for each citation
+                                      citations <- str_replace_all(citations, ",\\s*", "; @")
+                                      paste0("[@", citations, "]")
+                                  }),
+         `Discussed in` =
+         str_replace_all(`Discussed in`, 
+                                  "\\\\cite\\{([^}]+)\\}", # Match \cite{...}
+                                  function(x) {
+                                      # Extract the citation keys and split them by commas
+                                      citations <- str_match(x, "\\\\cite\\{([^}]+)\\}")[,2]
+                                      # Replace commas with semicolons and add @ for each citation
+                                      citations <- str_replace_all(citations, ",\\s*", "; @")
+                                      paste0("[@", citations, "]")
+                                  }),
+         `Used in` =
+         str_replace_all(`Used in`, 
+                                  "\\\\cite\\{([^}]+)\\}", # Match \cite{...}
+                                  function(x) {
+                                      # Extract the citation keys and split them by commas
+                                      citations <- str_match(x, "\\\\cite\\{([^}]+)\\}")[,2]
+                                      # Replace commas with semicolons and add @ for each citation
+                                      citations <- str_replace_all(citations, ",\\s*", "; @")
+                                      paste0("[@", citations, "]")
+                                  }))
+
+```
+
+
+```{r}
+bib <- ReadBib(file = "references.bib")
+
+invisible(data_frame(citation = RefManageR::TextCite(bib = bib)))
+
+# Extract the text between square brackets using gsub
+tab_description$`First mention in` <- gsub(".*\\[([^]]*)\\].*", "\\1", tab_description$`First mention in`)
+tab_description$`Discussed in`<- gsub(".*\\[([^]]*)\\].*", "\\1", tab_description$`Discussed in`)
+tab_description$`Used in` <- gsub(".*\\[([^]]*)\\].*", "\\1", tab_description$`Used in`)
+
+# Remove all @ symbols from the "Further reading" column
+tab_description$`First mention in` <- gsub("@", "", tab_description$`First mention in`)
+tab_description$`Discussed in` <- gsub("@", "", tab_description$`Discussed in`)
+tab_description$`Used in` <- gsub("@", "", tab_description$`Used in`)
+
+#Transform citations
+tab_description$`First mention in` <- 
+  sapply(tab_description$`First mention in`,
+         function (x) RefManageR::TextCite(bib = bib, x,
+                                           .opts = list(max.names = 2)))
+tab_description$`Discussed in` <- 
+  sapply(lapply(tab_description$`Discussed in`, 
+                function(x) unlist(strsplit(x, "; "))),
+         function(X) RefManageR::TextCite(bib = bib, X,
+                                          .opts = list(max.names = 2)))
+tab_description$`Used in` <- 
+  sapply(lapply(tab_description$`Used in`, 
+                function(x) unlist(strsplit(x, "; "))),
+         function(X) RefManageR::TextCite(bib = bib, X,
+                                          .opts = list(max.names = 2)))
+
+tab_description$Description <- sapply(tab_description$Description, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\cite\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\cite\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+tab_description$Limitations <- sapply(tab_description$Limitations, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\cite\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\cite\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+tab_description$Limitations <- sapply(tab_description$Limitations, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\citep\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\citep\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+ 
+tab_description$Assumptions <- sapply(tab_description$Assumptions, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\cite\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\cite\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+ 
+tab_description <- tab_description %>% 
+  mutate(References = paste0(ifelse(`First mention in` != "",
+                                    paste0("First mentioned in ",
+                                                  `First mention in`, ". "), ""),
+                                    ifelse(`Discussed in` != " ",
+                                           paste0("Discussed in ",
+                                                  `Discussed in`, ". "), ""),
+                                    ifelse(`Used in` != "",
+                                           paste0("Used in ",
+                                                  `Used in`, "."), ""))) %>% 
+  select(-`First mention in`, -`Discussed in`, -`Used in`)
+  
+
+# Custom CSS to minimize margins, padding, and font size
+custom_css <- tags$style(HTML("
+  /* Remove default body margins */
+  body {
+    margin: 0;  
+    padding: 0; /* Remove default padding */
+  }
+  
+  /* Ensure the table takes the full width of its container */
+  .dataTable {
+    width: 100% !important;  /* Set table width to 100% */
+    max-width: 100% !important;  /* Ensure max-width is not restricting it */
+    margin: 0;  /* Remove margin */
+    padding: 0;  /* Remove padding */
+    font-size: 12px;  /* Set font size for table */
+  }
+
+  /* Additional styling for table header and body */
+  .dataTable thead th,
+  .dataTable tbody td {
+    font-size: 12px;  /* Set font size for header and data cells */
+  }
+  
+  /* Ensure the DataTable wrapper has no padding */
+  .dataTables_wrapper {
+    padding: 0;  /* Remove padding from the wrapper */
+  }
+"))
+
+
+tab_description %>% 
+  DT::datatable(options = list(
+    pageLength = -1,  
+    lengthMenu = c(10, 25, 50, 100),
+    columnDefs = list(
+      list(
+        targets = 0,  # First column
+        width = '50px'  # Set width for first column
+      ),
+      list(
+        targets = 1,  # Second column
+        width = '300px'  # Set width for second column
+      ),
+      list(
+        targets = 2,  # Third column
+        width = '100px'  # Set width for third column
+      ),
+      list(
+        targets = 3,  # Fourth column
+        width = '100px'  # Set width for fourth column
+      ),
+      list(
+        targets = 4,  # Fifth column
+        width = '400px'  # Set width for fifth column
+      ), 
+      list(
+        targets = 5,  # Fifth column
+        width = '400px'  # Set width for fifth column
+      ),
+      list(
+        targets = 6,  # Fifth column
+        width = '400px'  # Set width for fifth column
+      )
+    )
+  ), rownames = FALSE) %>% 
+  htmltools::tagList(custom_css, .)
+
+
+```
+

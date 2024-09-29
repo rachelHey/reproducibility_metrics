@@ -38,7 +38,8 @@ get_firstdomain <-
   }) %>% as_tibble_col(column_name = "domain_openA") %>%
   mutate(doi = works_from_dois$doi) %>%
   rowwise() %>%
-  mutate(doi = str_remove(doi, "https://doi.org/"))
+  mutate(doi = str_remove(doi, "https://doi.org/")) %>%
+  distinct()
 
 # Get number of authors
 get_number_authors <-
@@ -53,13 +54,20 @@ get_number_authors <-
   mutate(doi = str_remove(doi, "https://doi.org/")) %>%
   # first one is not 0 but 260 (if I counted correctly)
   mutate(n_authors = case_when(doi == "10.1126/science.aac4716" ~ 260,
-                               TRUE ~ n_authors))
+                               TRUE ~ n_authors)) %>%
+  distinct()
 
 works_from_dois <- works_from_dois %>%
-  mutate(doi = str_remove(doi, "https://doi.org/"))
+  mutate(doi = str_remove(doi, "https://doi.org/")) %>%
+  group_by(doi) %>%
+  slice(1) %>%
+  ungroup() %>%
+  distinct()
 
 # Merge meta-data to our data
 data_extraction <- data_extraction_merged %>%
+  # Take out retracted article
+  filter(title != "High replicability of newly discovered social-behavioural findings is achievable") %>%
   select(-investigator_name) %>%
   mutate(doi = tolower(doi)) %>%
   left_join(get_firstdomain,
@@ -104,8 +112,7 @@ data_extraction <- data_extraction %>%
                  did_the_authors_measure_reproducibility)) %>%
   ungroup()
 
-# Some counts for a TABLE:
-
+# Some count function for a TABLE:
 table_entry_count <- function(data, variable, name = NULL){
   if (is.null(name)) name <- variable
 
@@ -125,7 +132,6 @@ table_entry_count <- function(data, variable, name = NULL){
       return()
   }
 }
-
 table_entry_numeric <- function(data, variable, name = NULL, big = ""){
   if (is.null(name)) name <- variable
   data %>%
@@ -137,6 +143,7 @@ table_entry_numeric <- function(data, variable, name = NULL, big = ""){
     return()
 }
 
+# Produce that summary statistics table
 tab <- tibble(" " = "Total records", n = paste0(nrow(data_extraction)), v = "") %>%
   bind_rows(
     data_extraction %>%
@@ -218,7 +225,7 @@ data_extraction %>%
   count(number_of_measures) %>%
   ggplot(aes(x = number_of_measures, y = n)) +
   geom_col(color = "white",fill = "#B2C7E5") +
-  geom_text(aes(label = paste0("n = ", n), vjust = -0.25)) +
+  geom_text(aes(label = paste0(n), vjust = -0.25)) +
   xlim(c(1, 12)) +
   # ylim(c(0, .4)) +
   labs(x = "Number of metrics used", y = "Count") +
@@ -344,6 +351,38 @@ long_data %>%
 
 # Closing the graphical device
 dev.off()
+# !!Note that combinations were split!!
+# Opening the graphical device
+pdf(here("plots_for_paper", "type_metric_repro_bar.pdf"),
+    width = 10, # The width of the plot in inches
+    height = 5)
+long_data %>%
+  count(type_of_repro,
+        type_of_agreement) %>%
+  separate_longer_delim(type_of_repro, delim = ";") %>%
+  mutate(type_of_repro = str_trim(type_of_repro)) %>%
+  group_by(type_of_repro, type_of_agreement) %>%
+  summarise(n = sum(n)) %>%
+  ungroup() %>%
+  ggplot(aes(x = type_of_agreement, y = n)) +
+  geom_col(aes(fill = type_of_repro), position = "dodge", color = "white") +
+  geom_text(aes(label = n), position = position_dodge2(.9), vjust =-0.1) +
+  scale_fill_manual(values = c("#97CFBA", "#dcedc1",
+                                "#ffd3b6", "#ff8b94"), "Type of reproducibility") +
+  labs(x = "Type of Metric", y = "Count") +
+  scale_x_discrete(labels = label_wrap(15)) +
+  # scale_y_discrete(labels = label_wrap(20)) +
+  theme_bw() +
+  theme(legend.position = "right",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(size = .2))
+
+# Closing the graphical device
+dev.off()
+
 
 pdf(here("plots_for_paper", "type_metric_project.pdf"),
     width = 8, # The width of the plot in inches
@@ -365,6 +404,36 @@ long_data %>%
   labs(x = "Type of Metric", y = "Type of project") +
   scale_x_discrete(labels = label_wrap(15)) +
   scale_y_discrete(labels = label_wrap(18)) +
+  theme_bw() +
+  theme(legend.position = "right",
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_rect(size = .2))
+
+# Closing the graphical device
+dev.off()
+
+pdf(here("plots_for_paper", "type_metric_project_bar.pdf"),
+    width = 10, # The width of the plot in inches
+    height = 5)
+long_data %>%
+  count(type_of_project,
+        type_of_agreement) %>%
+  separate_longer_delim(type_of_project, delim = ";") %>%
+  mutate(type_of_project = str_trim(type_of_project)) %>%
+  group_by(type_of_project, type_of_agreement) %>%
+  summarise(n = sum(n)) %>%
+  ungroup() %>%
+  ggplot(aes(x = type_of_agreement, y = n)) +
+  geom_col(aes(fill = type_of_project), color = "white", position = "dodge") +
+  geom_text(aes(label = n), position = position_dodge2(.9), vjust =-0.1) +
+  scale_fill_manual(values = c("#97CFBA", "#dcedc1",
+                               "#ffd3b6", "#ff8b94"), "Type of project") +
+  labs(x = "Type of Metric", y = "Count") +
+  scale_x_discrete(labels = label_wrap(15)) +
+  # scale_y_discrete(labels = label_wrap(18)) +
   theme_bw() +
   theme(legend.position = "right",
         panel.grid.minor.x = element_blank(),

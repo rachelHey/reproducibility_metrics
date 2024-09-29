@@ -308,5 +308,5 @@ plots_for_paper/*
 rawdata_syrf_april11.csv
 
 *.pdf
-*.html
+#*.html
 
