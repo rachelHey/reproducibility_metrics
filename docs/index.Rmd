@@ -59,8 +59,7 @@ library(htmltools)  # Required for using tags$style
 
 
 reprometrics <-
-  readxl::read_xlsx(here("methodological_papers",
-                         "data_extraction",
+  readxl::read_xlsx(here("docs",
                          "ReproducibilityMetrics.xlsx"))
 
 options(knitr.kable.NA = '')
