@@ -1,14 +1,41 @@
 ---
 title: "Reproducibility Metrics"
 output: 
-  html_document:
+  flexdashboard::flex_dashboard:
     mathjax: "default"
     theme: flatly
     df_print: paged
-    csl: "apa.csl"
+    # orientation: rows
+    # logo: WP1_theory_light.png
+    # csl: "apa.csl"
 bibliography: references.bib
 citation_package: pandoc
+nocite: '@*'
 ---
+
+
+# Home
+
+Row
+-------------------------------------
+
+
+
+```{r picture, echo = F, fig.cap = " ", out.width = '10%'}
+knitr::include_graphics("WP1_theory_light.png")
+```
+
+
+### **A scoping review on metrics to quantify reproducibility**  
+
+Reproducibility is increasingly recognized as essential to scientific progress and integrity. A growing number of meta-research studies and projects aim at evaluating interventions to improve reproducibility, including the three recently funded EU consortia, [iRISE](https://irise-project.eu), [OSIRIS](https://osiris4r.eu/) and [TIER2](https://tier2-project.eu/). Large-scale replication projects and replication studies in general, with the aim to quantify different aspects of reproducibility, have become more common, yet there is no standardised approach to measuring reproducibility. This leads to diverse and sometimes inconsistent practices and highlights the need for a comprehensive overview of available metrics. We systematically reviewed the applied and methodological literature and identified a total of 50 metrics to quantify reproducibility. These metrics were characterised based on their type (e.g., formulas or statistical models, frameworks), the input required, and appropriate application scenarios. Each metric addresses distinct questions, problems and needs. Our review provides a comprehensive and valuable  resource for future replication teams and meta-researchers, with guidance on how to select the most appropriate metrics that are aligned with their research questions and project goals.
+
+This dashboard presents the full Table of reproducibility metrics identified in our scoping review. It can be found in the panel `Table`. All columns can be searched and arranged, which should make it user friendly. The cited papers are listed in the panle `References`. 
+
+This table should be a living document and evolve with the community. Feedback including requests to add metrics can be sent to <a href="mailto:rachel_heyard@uzh.ch">Rachel Heyard</a>.
+
+<br>
+
 
 
 ```{r setup, include = FALSE}
@@ -50,17 +77,7 @@ tab_description <- reprometrics %>%
          `Type of Reproducibility investigated`, `Scenario of application`,
          `Purpose of Metric`, Limitations, Assumptions, `Data Input`,
          `Implementation of Metric`, `First mention in`, `Discussed in`, `Used in`) %>%
-  mutate(#"Further reading" = paste0(ifelse(!is.na(`First mention in`),
-  #                                          paste0("First mentioned in ",
-  #                                                 `First mention in`, ". "), ""),
-  #                                   ifelse(!is.na(`Discussed in`),
-  #                                          paste0("Discussed in ",
-  #                                                 `Discussed in`, ". "), ""),
-  #                                   ifelse(!is.na(`Used in`),
-  #                                          paste0("Used in ",
-  #                                                 `Used in`, "."), "")),
-         # "Further reading" = str_trim(`Further reading`),
-         "Type of Reproducibility investigated" =
+  mutate("Type of Reproducibility investigated" =
            case_when(
              `Type of Reproducibility investigated` ==
                "Different data - same analysis; Different data - different analysis" ~
@@ -76,8 +93,6 @@ tab_description <- reprometrics %>%
                  "Same data - same analysis; Same data - different analysis; Different data - same analysis; Different data - different analysis") ~
                "Same/different data - same/different analysis",
              TRUE ~ `Type of Reproducibility investigated`),
-         # "Type of Reproducibility investigated" =
-         #   factor(`Type of Reproducibility investigated`),
          "Type of Reproducibility investigated" =
            factor(`Type of Reproducibility investigated`,
                   levels = c("Same data - same analysis",
@@ -103,6 +118,10 @@ tab_description <- reprometrics %>%
   # Replace single $ with inline math format \( ... \)
   mutate(Description = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
                             "\\\\(\\1\\\\)", Description, perl = TRUE)) %>%
+  # Use gsub to replace LaTeX \href{}{} 
+  mutate("Implementation of Metric" = 
+           gsub("\\\\href\\{([^\\}]+)\\}\\{([^\\}]+)\\}", "\\1", 
+                `Implementation of Metric`)) %>% 
   # Leave double $$ as is
   mutate(Description = gsub("\\${2}", "\\$\\$", Description),
          # Use gsub to remove the backslash only in front of the percentage sign
@@ -142,7 +161,7 @@ tab_description <- reprometrics %>%
 
 ```
 
-
+# Table
 ```{r}
 bib <- ReadBib(file = "references.bib")
 
@@ -187,6 +206,37 @@ tab_description$Description <- sapply(tab_description$Description, function(x){
               parts[2])
   paste(na.omit(result), collapse = "")
 })
+
+tab_description$`Implementation of Metric` <- 
+  sapply(tab_description$`Implementation of Metric`, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\cite\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\cite\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+
+tab_description$`Implementation of Metric` <- 
+  sapply(tab_description$`Implementation of Metric`, function(x){
+  # Extract the citation dynamically
+  citation <- sub(".*\\\\citep\\{([^}]+)\\}.*", "\\1", x)
+  
+  # Split the text before and after the citation
+  parts <- strsplit(x, "\\\\citep\\{[^}]+\\}")[[1]]
+  
+  # Create a vector with the citation reference in between the split text
+  result <- c(parts[1], RefManageR::TextCite(bib = bib, citation,
+                                             .opts = list(max.names = 2)),
+              parts[2])
+  paste(na.omit(result), collapse = "")
+})
+
 tab_description$Limitations <- sapply(tab_description$Limitations, function(x){
   # Extract the citation dynamically
   citation <- sub(".*\\\\cite\\{([^}]+)\\}.*", "\\1", x)
@@ -200,6 +250,7 @@ tab_description$Limitations <- sapply(tab_description$Limitations, function(x){
               parts[2])
   paste(na.omit(result), collapse = "")
 })
+
 tab_description$Limitations <- sapply(tab_description$Limitations, function(x){
   # Extract the citation dynamically
   citation <- sub(".*\\\\citep\\{([^}]+)\\}.*", "\\1", x)
@@ -240,35 +291,32 @@ tab_description <- tab_description %>%
                                                   `Used in`, "."), ""))) %>% 
   select(-`First mention in`, -`Discussed in`, -`Used in`)
   
-
-# Custom CSS to minimize margins, padding, and font size
-custom_css <- tags$style(HTML("
-  /* Remove default body margins */
-  body {
-    margin: 0;  
-    padding: 0; /* Remove default padding */
-  }
+split_long_words <- function(string, width = 25) {
+  # Split the string into individual words
+  words <- unlist(strsplit(string, " "))
   
-  /* Ensure the table takes the full width of its container */
-  .dataTable {
-    width: 100% !important;  /* Set table width to 100% */
-    max-width: 100% !important;  /* Ensure max-width is not restricting it */
-    margin: 0;  /* Remove margin */
-    padding: 0;  /* Remove padding */
-    font-size: 12px;  /* Set font size for table */
+  # Function to split a word only if it's longer than 'width' characters
+  split_word <- function(word, width) {
+    if (nchar(word) > width) {
+      # Split the long word into parts of 'width' length
+      parts <- substring(word, seq(1, nchar(word), by = width), seq(width, nchar(word) + width - 1, by = width))
+      paste(parts, collapse = " ")
+    } else {
+      word  # Return the word unchanged if it's not too long
+    }
   }
-
-  /* Additional styling for table header and body */
-  .dataTable thead th,
-  .dataTable tbody td {
-    font-size: 12px;  /* Set font size for header and data cells */
-  }
+  # Apply the split_word function to each word
+  split_words <- sapply(words, split_word, width = width)
   
-  /* Ensure the DataTable wrapper has no padding */
-  .dataTables_wrapper {
-    padding: 0;  /* Remove padding from the wrapper */
-  }
-"))
+  # Recombine the words into a single string
+  paste(split_words, collapse = " ")
+}
+
+tab_description <- tab_description %>% 
+  rowwise() %>% 
+  mutate("Implementation of Metric" = 
+           split_long_words(`Implementation of Metric`)) %>% 
+  ungroup()
 
 
 tab_description %>% 
@@ -282,7 +330,7 @@ tab_description %>%
       ),
       list(
         targets = 1,  # Second column
-        width = '300px'  # Set width for second column
+        width = '400px'  # Set width for second column
       ),
       list(
         targets = 2,  # Third column
@@ -305,9 +353,14 @@ tab_description %>%
         width = '400px'  # Set width for fifth column
       )
     )
-  ), rownames = FALSE) %>% 
-  htmltools::tagList(custom_css, .)
+  ), rownames = FALSE, 
+    filter = "top")
 
 
 ```
 
+<!-- % Insert the bibliography at the end of the document -->
+# References
+
+Column {.tabset}
+-------------------------------------
