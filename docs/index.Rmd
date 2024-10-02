@@ -59,10 +59,9 @@ library(htmltools)  # Required for using tags$style
 
 
 reprometrics <-
-  readxl::read_xlsx(here("docs",
+  readxl::read_xlsx(here("methodological_papers",
+                         "data_extraction",
                          "ReproducibilityMetrics.xlsx"))
-
-options(knitr.kable.NA = '')
 
 ```
 
@@ -109,7 +108,7 @@ tab_description <- reprometrics %>%
                grepl("predict", `Purpose of Metric`) ~ "To quantify and predict",
                grepl("analyse", `Purpose of Metric`) |
                  grepl("describe", `Purpose of Metric`) |
-                 grepl("explain", `Purpose of Metric`) ~ "To quantify and expain",
+                 grepl("explain", `Purpose of Metric`) ~ "To quantify and explain",
                grepl("quantify", `Purpose of Metric`) ~ "To quantify",
                grepl("classify", `Purpose of Metric`) ~ "To classify",
                TRUE ~ `Purpose of Metric`)) %>%

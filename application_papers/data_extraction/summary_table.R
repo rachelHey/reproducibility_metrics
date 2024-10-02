@@ -147,7 +147,7 @@ table_entry_numeric <- function(data, variable, name = NULL, big = ""){
 tab <- tibble(" " = "Total records", n = paste0(nrow(data_extraction)), v = "") %>%
   bind_rows(
     data_extraction %>%
-      table_entry_count("domain_openA", "Field of research")) %>%
+      table_entry_count("domain_openA", "Field of research (OpenAlex)")) %>%
   bind_rows(
     data_extraction %>%
       mutate(
