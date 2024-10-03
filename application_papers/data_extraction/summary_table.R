@@ -336,8 +336,8 @@ long_data %>%
   geom_point(aes(size = n, color = type_of_repro)) +
   scale_size_continuous(range = c(2, 15), breaks = c(1, 5, 10, 15, 20, 25),
                         "Count") +
-  scale_color_manual(values = c("#97CFBA", "#dcedc1",
-                                "#ffd3b6", "#ff8b94"), guide = "none") +
+  scale_color_manual(values = c("#44AA99", "#88CCEE",
+                                "#DDCC77", "#CC6677"), guide = "none") +
   labs(x = "Type of Metric", y = "Type of reproducibility") +
   scale_x_discrete(labels = label_wrap(15)) +
   scale_y_discrete(labels = label_wrap(20)) +
@@ -367,8 +367,8 @@ long_data %>%
   ggplot(aes(x = type_of_agreement, y = n)) +
   geom_col(aes(fill = type_of_repro), position = "dodge", color = "white") +
   geom_text(aes(label = n), position = position_dodge2(.9), vjust =-0.1) +
-  scale_fill_manual(values = c("#97CFBA", "#dcedc1",
-                                "#ffd3b6", "#ff8b94"), "Type of reproducibility") +
+  scale_fill_manual(values = c("#44AA99", "#88CCEE",
+                                "#DDCC77", "#CC6677"), "Type of reproducibility") +
   labs(x = "Type of Metric", y = "Count") +
   scale_x_discrete(labels = label_wrap(15)) +
   # scale_y_discrete(labels = label_wrap(20)) +
@@ -399,8 +399,8 @@ long_data %>%
   geom_point(aes(size = n, color = type_of_project)) +
   scale_size_continuous(range = c(2, 10), breaks = c(1, 5, 10, 15),
                         "Count") +
-  scale_color_manual(values = c("#97CFBA", "#dcedc1",
-                                "#ffd3b6", "#ff8b94"), guide = "none") +
+  scale_color_manual(values = c("#44AA99", "#88CCEE",
+                                "#DDCC77", "#CC6677"), guide = "none") +
   labs(x = "Type of Metric", y = "Type of project") +
   scale_x_discrete(labels = label_wrap(15)) +
   scale_y_discrete(labels = label_wrap(18)) +
@@ -429,8 +429,8 @@ long_data %>%
   ggplot(aes(x = type_of_agreement, y = n)) +
   geom_col(aes(fill = type_of_project), color = "white", position = "dodge") +
   geom_text(aes(label = n), position = position_dodge2(.9), vjust =-0.1) +
-  scale_fill_manual(values = c("#97CFBA", "#dcedc1",
-                               "#ffd3b6", "#ff8b94"), "Type of project") +
+  scale_fill_manual(values = c("#44AA99", "#88CCEE",
+                               "#DDCC77", "#CC6677"), "Type of project") +
   labs(x = "Type of Metric", y = "Count") +
   scale_x_discrete(labels = label_wrap(15)) +
   # scale_y_discrete(labels = label_wrap(18)) +
