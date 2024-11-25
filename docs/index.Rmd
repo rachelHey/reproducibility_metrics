@@ -32,7 +32,7 @@ Reproducibility is increasingly recognized as essential to scientific progress a
 
 This dashboard presents the full Table of reproducibility metrics identified in our scoping review. It can be found in the panel `Table`. All columns can be searched and arranged, which should make it user friendly. The cited papers are listed in the panel `References`. 
 
-This table should be a living document and evolve with the community. Feedback including requests to add metrics can be sent to <a href="mailto:rachel_heyard@uzh.ch">Rachel Heyard</a>. Our live table is hosted on [github.com/rachelHey/reproducibility_metrics](https://github.com/rachelHey/reproducibility_metrics) and we invite anyone to suggest the addition of reproducibility metrics via github-issues.
+This table should be a living document and evolve with the community. Feedback including requests to add metrics can be sent to <a href="mailto:rachel_heyard@uzh.ch">Rachel Heyard</a>. The code for the live table is hosted on [github.com/rachelHey/reproducibility_metrics](https://github.com/rachelHey/reproducibility_metrics) and we invite anyone to suggest the addition of reproducibility metrics via github-issues. A CSV version of our table can be found here: [osf.io/sbcy3](https://osf.io/sbcy3).
 
 <br>
 
