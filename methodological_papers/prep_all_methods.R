@@ -36,9 +36,7 @@ methods_papers_included <- methods_papers_screened %>%
 # --------------------------------------------------------------
 # Get the data:
 dois_application_papers_merged <-
-  read_csv(here("application_papers",
-                "data_extraction",
-                "data_extract_clean_MERGED.csv")) %>%
+  read_csv("https://osf.io/download/ubmyt/") %>%
   clean_names() %>% pull(paste_the_doi_of_all_paper_s)
 
 dois_application_papers_merged <-
@@ -97,10 +95,7 @@ methods_snowball_papers_included <- methods_snowball_papers_screened %>%
 # --------------------------------------------------------------
 # Get the column with the DOIs
 dois_data_extraction_interesting_application_papers <-
-  read_csv(here("methodological_papers",
-                 "snowballing",
-                 "data_extraction_interesting_applications",
-                 "annotation_data_2024_08_02_clean_merged.csv")) %>%
+  read_csv("https://osf.io/download/eabps/") %>%
   clean_names() %>%
   filter(!is.na(paste_the_doi_of_all_paper_s)) %>%
   # Delete this one paper, as factor replicability is not a type repro we are
