@@ -13,9 +13,7 @@ library(scales) # for label_wrap()
 #### Load data ######
 #####################
 data_extraction_merged <-
-  read_csv(here("application_papers",
-                "data_extraction",
-                "data_extract_clean_MERGED.csv")) %>%
+  read_csv("https://osf.io/download/ubmyt/") %>%
   clean_names()
 
 # find the one record with an NA in DOI:

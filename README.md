@@ -15,7 +15,7 @@ All literature used at any point in our review is uploaded and curated in Zotero
   - a folder with our call for application (`call_for_collab/`): a`.tex` file for of the call document which was subsequently published on the [Open Science Framework](https://osf.io/a2wrj) and shared in the [FORRT community](https://forrt.org/) slack. 
   - a sub folder `data_extraction/` including the `data_extract_clean.csv` which was produced using the `prep_data.R` script since the SyRF data extraction export was not formatted nice enough to be useful. The individual data extractions in `data_extract_clean.csv` were merged in  `data_extract_clean_MERGED.csv`. The `R` script (`summary_table.R`) uses the clean and merged data to produce some summary statistics on the application papers. 
 
-- The `methodologyical_papers` folder includes  
+- The `methodological_papers` folder includes  
   - two sub-folders with `R` scripts to produce the screening data and the data for the screening test. An additional sub-folder  `snowballing` includes the `R` script for the snowballing (`forward_backward.R`).
   - a script to prepare the methods papers for final screening (`prep_all_methods.R`) and a script to put together the finally included methods papers for data extraction (`final_methods_list.R`).
   

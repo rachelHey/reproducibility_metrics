@@ -28,7 +28,7 @@ knitr::include_graphics("WP1_theory_light.png")
 
 ### **A scoping review on metrics to quantify reproducibility**  
 
-Reproducibility is increasingly recognized as essential to scientific progress and integrity. A growing number of meta-research studies and projects aim at evaluating interventions to improve reproducibility, including the three recently funded EU consortia, [iRISE](https://irise-project.eu), [OSIRIS](https://osiris4r.eu/) and [TIER2](https://tier2-project.eu/). Large-scale replication projects and replication studies in general, with the aim to quantify different aspects of reproducibility, have become more common, yet there is no standardised approach to measuring reproducibility. This leads to diverse and sometimes inconsistent practices and highlights the need for a comprehensive overview of available metrics. We systematically reviewed the applied and methodological literature and identified a total of 50 metrics to quantify reproducibility. These metrics were characterised based on their type (e.g., formulas or statistical models, frameworks), the input required, and appropriate application scenarios. Each metric addresses distinct questions, problems and needs. Our review provides a comprehensive and valuable  resource for future replication teams and meta-researchers, with guidance on how to select the most appropriate metrics that are aligned with their research questions and project goals.
+Reproducibility is increasingly recognized as essential to scientific progress and integrity. A growing number of meta-research studies and projects aim to evaluate interventions to improve reproducibility, including three recently funded EU consortia (\href{https://irise-project.eu/}{iRISE}, \href{https://osiris4r.eu/}{OSIRIS} and \href{https://tier2-project.eu/}{TIER2}). Large-scale replication projects and replication studies in general, with the aim to quantify different aspects of reproducibility, have become more common. Since no standardized approach to measuring reproducibility exists, a diverse set of metrics has emerged. This highlights the need for a comprehensive overview of available metrics. To this end, we conducted a scoping review of the published literature and identified a total of 50 metrics to quantify reproducibility. These metrics were characterized based on their type (formulas and/or statistical models, frameworks, graphical representations, studies and questionnaires, algorithms), the input required, and appropriate application scenarios. Each metric addresses distinct questions, problems and needs. Our review provides a comprehensive and valuable resource in the form of a ``live'', interactive table for future replication teams and meta-researchers, offering support in how to select the most appropriate metrics that are aligned with their research questions and project goals.
 
 This dashboard presents the full Table of reproducibility metrics identified in our scoping review. It can be found in the panel `Table`. All columns can be searched and arranged, which should make it user friendly. The cited papers are listed in the panel `References`. 
 
@@ -59,9 +59,7 @@ library(htmltools)  # Required for using tags$style
 
 
 reprometrics <-
-  readxl::read_xlsx(here("methodological_papers",
-                         "data_extraction",
-                         "ReproducibilityMetrics.xlsx"))
+  read_csv("https://osf.io/download/y3zf4/")
 
 ```
 
