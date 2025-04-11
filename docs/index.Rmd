@@ -112,7 +112,9 @@ tab_description <- reprometrics %>%
                TRUE ~ `Purpose of Metric`)) %>%
   arrange(`Type of Reproducibility investigated`, Name) %>% 
   # Replace single $ with inline math format \( ... \)
-  mutate(Description = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+  mutate(Name = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+                            "\\\\(\\1\\\\)", Name, perl = TRUE),
+         Description = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
                             "\\\\(\\1\\\\)", Description, perl = TRUE),
          Limitations = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
                             "\\\\(\\1\\\\)", Limitations, perl = TRUE),
