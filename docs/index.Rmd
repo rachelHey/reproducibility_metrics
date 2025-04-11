@@ -113,11 +113,29 @@ tab_description <- reprometrics %>%
   arrange(`Type of Reproducibility investigated`, Name) %>% 
   # Replace single $ with inline math format \( ... \)
   mutate(Description = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
-                            "\\\\(\\1\\\\)", Description, perl = TRUE)) %>%
+                            "\\\\(\\1\\\\)", Description, perl = TRUE),
+         Limitations = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+                            "\\\\(\\1\\\\)", Limitations, perl = TRUE),
+         Assumptions = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+                            "\\\\(\\1\\\\)", Assumptions, perl = TRUE),
+         "Question answered" = gsub("(?<!\\$)\\$(?!\\$)([^$]*)\\$(?!\\$)",
+                                    "\\\\(\\1\\\\)", `Question answered`, 
+                                    perl = TRUE)) %>%
   # Use gsub to replace LaTeX \href{}{} 
   mutate("Implementation of Metric" = 
-           gsub("\\\\href\\{([^\\}]+)\\}\\{([^\\}]+)\\}", "\\1", 
-                `Implementation of Metric`)) %>% 
+           gsub("\\\\href\\{([^\\}]+)\\}\\{([^\\}]+)\\}", "\\1",
+                `Implementation of Metric`),
+         "Assumptions" = 
+           gsub("\\\\href\\{([^\\}]+)\\}\\{([^\\}]+)\\}", "\\1",
+                `Assumptions`),
+         "Limitations" = 
+           gsub("\\\\href\\{([^\\}]+)\\}\\{([^\\}]+)\\}", "\\1",
+                `Limitations`)) %>%
+  # Get rid of any weird symbols
+  mutate("Implementation of Metric" = 
+           iconv(`Implementation of Metric`, to = "ASCII", sub = ""),
+         "Data Input" = 
+           iconv(`Data Input`, to = "ASCII", sub = "")) %>% 
   # Leave double $$ as is
   mutate(Description = gsub("\\${2}", "\\$\\$", Description),
          # Use gsub to remove the backslash only in front of the percentage sign
